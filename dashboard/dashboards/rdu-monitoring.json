@@ -1,0 +1,118 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "RDU System Monitoring",
+    "tags": ["rdu", "envoy", "nginx"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "HTTP Requests - Envoy",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "targets": [
+          {
+            "expr": "sum(envoy_http_downstream_rq_xx{envoy_http_conn_manager_prefix=\"ingress_http\"}) by (envoy_response_code_class)",
+            "legendFormat": "{{envoy_response_code_class}}xx"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Nginx Connections",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "targets": [
+          {
+            "expr": "nginx_connections_active",
+            "legendFormat": "Active"
+          },
+          {
+            "expr": "nginx_connections_reading",
+            "legendFormat": "Reading"
+          },
+          {
+            "expr": "nginx_connections_writing",
+            "legendFormat": "Writing"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Response Times - Envoy",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum(rate(envoy_http_downstream_rq_time_bucket[1m])) by (le))",
+            "legendFormat": "p95"
+          },
+          {
+            "expr": "histogram_quantile(0.50, sum(rate(envoy_http_downstream_rq_time_bucket[1m])) by (le))",
+            "legendFormat": "p50"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "ms"
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Nginx Requests",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+        "targets": [
+          {
+            "expr": "rate(nginx_requests_total[1m])",
+            "legendFormat": "Requests/sec"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "CPU Usage - Node",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+        "targets": [
+          {
+            "expr": "rate(node_cpu_seconds_total{mode!=\"idle\"}[1m]) * 100",
+            "legendFormat": "{{mode}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent"
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "Memory Usage - Node",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+        "targets": [
+          {
+            "expr": "node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes",
+            "legendFormat": "Used"
+          },
+          {
+            "expr": "node_memory_MemAvailable_bytes",
+            "legendFormat": "Available"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "bytes"
+          }
+        }
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "10s"
+  }
+}

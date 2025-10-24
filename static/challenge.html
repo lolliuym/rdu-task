@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Проверка безопасности - RDU System</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 600px; 
+            margin: 50px auto; 
+            padding: 20px;
+            background: #fff3cd;
+        }
+        .challenge-box {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            border: 2px solid #ffc107;
+            text-align: center;
+        }
+        .warning { 
+            color: #856404; 
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="challenge-box">
+        <h1>���️ Требуется проверка безопасности</h1>
+        
+        <div class="warning">
+            <strong>⚠️ Обнаружен подозрительный запрос</strong>
+            <p>Наша система определила ваш запрос как потенциально автоматизированный.</p>
+        </div>
+        
+        <h2>Пожалуйста, подтвердите что вы человек:</h2>
+        
+        <form action="/verify" method="POST">
+            <div style="margin: 20px 0;">
+                <label><strong>Решите простую задачу:</strong></label><br>
+                <p>Сколько будет 7 + 3?</p>
+                <input type="number" name="captcha" required style="padding: 10px; font-size: 16px;">
+            </div>
+            
+            <button type="submit" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                ✅ Подтвердить
+            </button>
+        </form>
+        
+        <p style="margin-top: 20px; font-size: 14px; color: #666;">
+            Эта страница является частью системы RDU для защиты от автоматических ботов.
+        </p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!-- static/dashboard.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RDU Test Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+        .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .status { display: flex; align-items: center; gap: 10px; }
+        .status.online { color: green; }
+        .status.offline { color: red; }
+        canvas { max-height: 300px; }
+    </style>
+</head>
+<body>
+    <h1>Ì≥ä RDU Test Dashboard</h1>
+    
+    <div class="dashboard">
+        <div class="card">
+            <h3>Ì∫¶ Service Status</h3>
+            <div id="services-status">
+                <div class="status online">‚úÖ Server (nginx)</div>
+                <div class="status online">‚úÖ RDU (Envoy)</div>
+                <div class="status online">‚úÖ Client (k6)</div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>Ì≥à Response Times</h3>
+            <canvas id="responseTimeChart"></canvas>
+        </div>
+        
+        <div class="card">
+            <h3>ÌæØ Success Rate</h3>
+            <canvas id="successRateChart"></canvas>
+        </div>
+        
+        <div class="card">
+            <h3>Ì¥ç Test Results</h3>
+            <div id="test-results">
+                <div>Human: <span class="status online">‚úÖ PASS</span></div>
+                <div>Bad Bot: <span class="status offline">‚ùå FAIL (expected)</span></div>
+                <div>Suspicious: <span class="status offline">‚ùå FAIL (expected)</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock data for dashboard
+        const responseTimes = [45, 52, 48, 65, 72, 58, 49, 62, 55, 68];
+        const successRates = [100, 98, 99, 97, 95, 96, 98, 97, 99, 98];
+        
+        // Response Time Chart
+        new Chart(document.getElementById('responseTimeChart'), {
+            type: 'line',
+            data: {
+                labels: Array.from({length: 10}, (_, i) => `T-${i+1}`),
+                datasets: [{
+                    label: 'Response Time (ms)',
+                    data: responseTimes,
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1
+                }]
+            }
+        });
+        
+        // Success Rate Chart
+        new Chart(document.getElementById('successRateChart'), {
+            type: 'bar',
+            data: {
+                labels: Array.from({length: 10}, (_, i) => `Run ${i+1}`),
+                datasets: [{
+                    label: 'Success Rate %',
+                    data: successRates,
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)'
+                }]
+            }
+        });
+        
+        // Auto-refresh every 10 seconds
+        setInterval(() => {
+            console.log('Refreshing dashboard data...');
+        }, 10000);
+    </script>
+</body>
+</html>

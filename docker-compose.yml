@@ -1,0 +1,111 @@
+version: '3.8'
+
+services:
+  server:
+    image: nginx:alpine
+    volumes:
+      - ./static:/usr/share/nginx/html
+      - ./configs/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./configs/healthcheck.html:/usr/share/nginx/html/healthcheck.html
+    networks:
+      - rdu-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/healthcheck.html"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  rdu:
+    image: envoyproxy/envoy:v1.28-latest
+    volumes:
+      - ./configs/envoy.yaml:/etc/envoy/envoy.yaml
+    ports:
+      - "8080:8080"
+      - "9901:9901"  # Envoy Admin API
+    networks:
+      - rdu-network
+    depends_on:
+      server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O- http://localhost:9901/ready | grep -q LIVE || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:latest
+    ports:
+      - "9113:9113"
+    networks:
+      - rdu-network
+    command:
+      - '-nginx.scrape-uri=http://server:80/nginx_status'
+    depends_on:
+      server:
+        condition: service_healthy
+
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    volumes:
+      - ./tests:/tests
+      - ./results:/results
+    networks:
+      - rdu-network
+    stdin_open: true
+    tty: true
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - rdu-network
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+
+  grafana:
+    image: grafana/grafana:latest
+    volumes:
+      - ./dashboard/grafana.ini:/etc/grafana/grafana.ini
+      - ./dashboard/dashboards:/var/lib/grafana/dashboards
+      - ./dashboard/provisioning:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    ports:
+      - "3000:3000"
+    networks:
+      - rdu-network
+    depends_on:
+      - prometheus
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    networks:
+      - rdu-network
+    ports:
+      - "9100:9100"
+
+networks:
+  rdu-network:
+    driver: bridge

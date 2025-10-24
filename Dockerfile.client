@@ -1,0 +1,16 @@
+FROM alpine:latest
+
+RUN apk add --no-cache \
+    curl \
+    wget \
+    iputils \
+    bind-tools \
+    jq
+
+# Устанавливаем k6 правильно
+RUN wget -q https://github.com/grafana/k6/releases/download/v0.50.0/k6-v0.50.0-linux-amd64.tar.gz && \
+    tar -xzf k6-v0.50.0-linux-amd64.tar.gz -C /usr/bin --strip-components=1 && \
+    rm k6-v0.50.0-linux-amd64.tar.gz
+
+WORKDIR /tests
+CMD ["tail", "-f", "/dev/null"]

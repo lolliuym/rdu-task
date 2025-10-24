@@ -1,0 +1,31 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'envoy'
+    static_configs:
+      - targets: ['rdu:9901']
+    metrics_path: /stats/prometheus
+    scrape_interval: 10s
+
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['server:80']
+    metrics_path: /nginx_status
+    params:
+      format: ['prometheus']
+
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 15s
+
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+      
+  - job_name: 'rdu-app'
+    static_configs:
+      - targets: ['server:80', 'rdu:8080']
+    metrics_path: /metrics
